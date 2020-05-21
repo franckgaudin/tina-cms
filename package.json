@@ -9,7 +9,11 @@
   },
   "dependencies": {
     "next": "9.4.2",
+    "next-tinacms-github": "^0.1.0",
     "react": "16.13.1",
-    "react-dom": "16.13.1"
+    "react-dom": "16.13.1",
+    "react-tinacms-github": "^0.3.2",
+    "styled-components": "^5.1.0",
+    "tinacms": "^0.19.4"
   }
 }
