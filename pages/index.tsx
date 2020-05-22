@@ -1,7 +1,11 @@
 import Head from 'next/head'
+import dynamic from 'next/dynamic';
 import { getGithubPreviewProps, parseJson} from 'next-tinacms-github';
 import { useGithubJsonForm, useGithubToolbarPlugins } from 'react-tinacms-github';
 import { GetStaticProps } from 'next';
+import { MDXProvider } from '@mdx-js/react'
+
+import getMdxContent from '../mdxCompiler';
 
 export default function Home({ file }) {
   const formOptions = {
@@ -9,8 +13,21 @@ export default function Home({ file }) {
     fields: [{ name: 'title', component: 'text'}]
   }
 
-  const [data, form] = useGithubJsonForm(file, formOptions);
-  useGithubToolbarPlugins();
+  // const [data, form] = useGithubJsonForm(file, formOptions);
+  // useGithubToolbarPlugins();
+  
+  console.log('render data', file.data);
+
+  
+
+  const mdComponents = {}
+
+  let mdxData;
+  const MdxFile = dynamic(
+    () => import('../content/home.mdx'),
+    { ssr: false},
+  );
+  mdxData = <MdxFile />;
   
   return (
     <div className="container">
@@ -20,9 +37,12 @@ export default function Home({ file }) {
       </Head>
 
       <main>
-        <h1 className="title">
+        {/* <h1 className="title">
           {data.title}
-        </h1>
+        </h1> */}
+
+        <MdxFile />
+        {/* <MDXProvider components={mdComponents}>{mdxData}</MDXProvider> */}
 
         <p className="description">
           Get started by editing <code>pages/index.js</code>
@@ -222,6 +242,11 @@ export default function Home({ file }) {
 export const getStaticProps: GetStaticProps = async function({
   preview, previewData,
 }) {
+
+  // const data = await import('../content/home.mdx');
+  const data = await getMdxContent('home.mdx');
+  console.log('data', data);
+
   if(preview) {
     return getGithubPreviewProps({
       ...previewData,
@@ -236,8 +261,8 @@ export const getStaticProps: GetStaticProps = async function({
       error: null,
       preview: false,
       file: {
-        fileRelativePath: 'content/home.json',
-        data: (await import('../content/home.json')).default
+        fileRelativePath: '../content/home.mdx',
+        data: JSON.stringify(data)
       }
     }
   }
