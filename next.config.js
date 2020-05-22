@@ -1,4 +1,6 @@
-require('dotenv').config()
+require('dotenv').config();
+
+const isProd = (process.env.NODE_ENV || 'production') === 'production'
 
 module.exports = {
   env: {
@@ -6,4 +8,8 @@ module.exports = {
     REPO_FULL_NAME: process.env.REPO_FULL_NAME,
     BASE_BRANCH: process.env.BASE_BRANCH,
   },
+  exportPathMap: () => ({
+    '/': { page: '/' },
+  }),
+  assetPrefix: isProd ? '/tina-cms' : '',
 }
