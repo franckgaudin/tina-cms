@@ -9,7 +9,7 @@
     "preexport": "npm run build",
     "export": "next export",
     "predeploy": "yarn export",
-    "deploy": "touch out/.nojekyll && gh-pages -d out"
+    "deploy": "touch out/.nojekyll && gh-pages --dotfiles=true -d out"
   },
   "dependencies": {
     "dotenv": "^8.2.0",
