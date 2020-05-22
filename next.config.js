@@ -12,4 +12,4 @@ module.exports = {
     '/': { page: '/' },
   }),
   assetPrefix: isProd ? '/tina-cms' : '',
-}
+} 
