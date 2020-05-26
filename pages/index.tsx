@@ -1,17 +1,22 @@
-import Head from 'next/head'
-import { getGithubPreviewProps, parseJson} from 'next-tinacms-github';
-import { useGithubJsonForm, useGithubToolbarPlugins } from 'react-tinacms-github';
-import { GetStaticProps } from 'next';
+import Head from "next/head";
+import { getGithubPreviewProps, parseJson } from "next-tinacms-github";
+import {
+  useGithubJsonForm,
+  useGithubToolbarPlugins,
+} from "react-tinacms-github";
+import { GetStaticProps } from "next";
 
 export default function Home({ file }) {
   const formOptions = {
-    label: 'Home Page',
-    fields: [{ name: 'title', component: 'text'}]
-  }
+    label: "Home Page",
+    fields: [{ name: "title", component: "text" }],
+  };
+
+  console.log("file", file);
 
   const [data, form] = useGithubJsonForm(file, formOptions);
   useGithubToolbarPlugins();
-  
+
   return (
     <div className="container">
       <Head>
@@ -20,9 +25,7 @@ export default function Home({ file }) {
       </Head>
 
       <main>
-        <h1 className="title">
-          {data.title}
-        </h1>
+        <h1 className="title">{data.title}</h1>
 
         <p className="description">
           Get started by editing <code>pages/index.js</code>
@@ -65,7 +68,7 @@ export default function Home({ file }) {
           target="_blank"
           rel="noopener noreferrer"
         >
-          Powered by{' '}
+          Powered by{" "}
           <img src="/vercel.svg" alt="Vercel Logo" className="logo" />
         </a>
       </footer>
@@ -209,25 +212,25 @@ export default function Home({ file }) {
           font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
             Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue,
             sans-serif;
-        }s
-
-        * {
+        }
+        s * {
           box-sizing: border-box;
         }
       `}</style>
     </div>
-  )
+  );
 }
 
-export const getStaticProps: GetStaticProps = async function({
-  preview, previewData,
+export const getStaticProps: GetStaticProps = async function ({
+  preview,
+  previewData,
 }) {
-  if(preview) {
+  if (preview) {
     return getGithubPreviewProps({
       ...previewData,
-      fileRelativePath: 'content/home.json',
+      fileRelativePath: "content/home.json",
       parse: parseJson,
-    })
+    });
   }
 
   return {
@@ -236,9 +239,9 @@ export const getStaticProps: GetStaticProps = async function({
       error: null,
       preview: false,
       file: {
-        fileRelativePath: 'content/home.json',
-        data: (await import('../content/home.json')).default
-      }
-    }
-  }
-}
+        fileRelativePath: "content/home.json",
+        data: (await import("../content/home.json")).default,
+      },
+    },
+  };
+};
