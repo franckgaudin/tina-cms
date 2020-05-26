@@ -1,9 +1,15 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/router";
 import ErrorPage from "next/error";
+import {
+  useGithubMarkdownForm,
+  useGithubToolbarPlugins,
+} from "react-tinacms-github";
 import { getPostBySlug, getAllPosts } from "../../lib/api";
 import markdownToHtml from "../../lib/markdownToHtml";
 import PostType from "../../types/post";
+import { getGithubPreviewProps, parseMarkdown } from "next-tinacms-github";
+import { useForm, usePlugin, useLocalForm, useCMS } from "tinacms";
 
 type Props = {
   post: PostType;
@@ -11,11 +17,37 @@ type Props = {
   preview?: boolean;
 };
 
-const Post: React.FC<Props> = ({ post, morePosts, preview }) => {
+const Post: React.FC<Props> = ({ post: initialPost }) => {
   const router = useRouter();
-  if (!router.isFallback && !post?.slug) {
+  if (!router.isFallback && !initialPost?.slug) {
     return <ErrorPage statusCode={404} />;
   }
+
+  const formOptions = {
+    id: initialPost.slug, // a unique identifier for this instance of the form
+    label: "Blog Post", // name of the form to appear in the sidebar
+    initialValues: initialPost, // populate the form with starting values
+    onSubmit: (values) => {
+      // do something with the data when the form is submitted
+      alert(`Submitting ${values.title}`);
+    },
+    fields: [
+      // define fields to appear in the form
+      {
+        name: "title", // field name maps to the corresponding key in initialValues
+        label: "Post Title", // label that appears above the field
+        component: "text", // the component used to handle UI and input to the field
+      },
+      {
+        name: "rawMarkdownBody", // remember we want `rawMarkdownBody`, not `content` here
+        label: "Content",
+        component: "markdown", // `component` accepts a predefined components or a custom React component
+      },
+    ],
+  };
+
+  const [post, form] = useLocalForm(formOptions);
+  usePlugin(form);
 
   const [htmlContent, setHtmlContent] = useState(post.content);
   const initialContent = useMemo(() => post.rawMarkdownBody, []);
@@ -25,6 +57,7 @@ const Post: React.FC<Props> = ({ post, morePosts, preview }) => {
     markdownToHtml(post.rawMarkdownBody).then(setHtmlContent);
   }, [post.rawMarkdownBody]);
 
+  useGithubToolbarPlugins();
   return (
     <>
       <article>
@@ -49,7 +82,7 @@ type Params = {
   };
 };
 
-export async function getStaticProps({ params }: Params) {
+export async function getStaticProps({ params, preview, previewData }: Params) {
   const post = getPostBySlug(params.slug, [
     "title",
     "date",
@@ -61,6 +94,22 @@ export async function getStaticProps({ params }: Params) {
   ]);
   const content = await markdownToHtml(post.content || "");
 
+  if (preview) {
+    return {
+      props: {
+        ...previewData,
+        post: {
+          ...post,
+          content,
+          rawMarkdownBody: post.content,
+          fileRelativePath: `content/posts/${params.slug}.md`,
+        },
+
+        preview: true,
+      },
+    };
+  }
+
   return {
     props: {
       post: {
@@ -68,6 +117,7 @@ export async function getStaticProps({ params }: Params) {
         content,
         rawMarkdownBody: post.content,
       },
+      preview: false,
     },
   };
 }
