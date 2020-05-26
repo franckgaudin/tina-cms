@@ -10,6 +10,7 @@ import markdownToHtml from "../../lib/markdownToHtml";
 import PostType from "../../types/post";
 import { getGithubPreviewProps, parseMarkdown } from "next-tinacms-github";
 import { useForm, usePlugin, useLocalForm, useCMS } from "tinacms";
+import { FORM_ERROR } from "final-form";
 
 type Props = {
   post: PostType;
@@ -17,19 +18,34 @@ type Props = {
   preview?: boolean;
 };
 
-const Post: React.FC<Props> = ({ post: initialPost }) => {
+const Post: React.FC<Props> = ({ post: initialPost, sha }) => {
   const router = useRouter();
   if (!router.isFallback && !initialPost?.slug) {
     return <ErrorPage statusCode={404} />;
   }
 
+  const cms = useCMS();
+  const github = cms.api.github;
+
   const formOptions = {
     id: initialPost.slug, // a unique identifier for this instance of the form
     label: "Blog Post", // name of the form to appear in the sidebar
     initialValues: initialPost, // populate the form with starting values
-    onSubmit: (values) => {
+    onSubmit: (formData) => {
       // do something with the data when the form is submitted
-      alert(`Submitting ${values.title}`);
+      return github
+        .commit(post.fileRelativePath, sha, formData, "Update from TinaCMS")
+        .then((response: { content: { sha: string } }) => {
+          cms.alerts.success(
+            `Saved Successfully: Changes committed to ${github.workingRepoFullName}`
+          );
+          // setSha(response.content.sha);
+        })
+        .catch((error: any) => {
+          cms.events.dispatch({ type: "github:error", error });
+
+          return { [FORM_ERROR]: error };
+        });
     },
     fields: [
       // define fields to appear in the form
@@ -95,6 +111,14 @@ export async function getStaticProps({ params, preview, previewData }: Params) {
   const content = await markdownToHtml(post.content || "");
 
   if (preview) {
+    const githubPreviewProps = await getGithubPreviewProps({
+      ...previewData,
+      fileRelativePath: `content/posts/${params.slug}.md`,
+      parse: parseMarkdown,
+    });
+
+    const sha = githubPreviewProps.props.file.sha;
+
     return {
       props: {
         ...previewData,
@@ -104,7 +128,7 @@ export async function getStaticProps({ params, preview, previewData }: Params) {
           rawMarkdownBody: post.content,
           fileRelativePath: `content/posts/${params.slug}.md`,
         },
-
+        sha,
         preview: true,
       },
     };
@@ -117,6 +141,7 @@ export async function getStaticProps({ params, preview, previewData }: Params) {
         content,
         rawMarkdownBody: post.content,
       },
+      sha: null,
       preview: false,
     },
   };
