@@ -18,7 +18,7 @@ type Props = {
   preview?: boolean;
 };
 
-const Post: React.FC<Props> = ({ post: initialPost, sha }) => {
+const Post: React.FC<Props> = ({ post: initialPost }) => {
   const router = useRouter();
   if (!router.isFallback && !initialPost?.slug) {
     return <ErrorPage statusCode={404} />;
@@ -33,19 +33,19 @@ const Post: React.FC<Props> = ({ post: initialPost, sha }) => {
     initialValues: initialPost, // populate the form with starting values
     onSubmit: (formData) => {
       // do something with the data when the form is submitted
-      return github
-        .commit(post.fileRelativePath, sha, formData, "Update from TinaCMS")
-        .then((response: { content: { sha: string } }) => {
-          cms.alerts.success(
-            `Saved Successfully: Changes committed to ${github.workingRepoFullName}`
-          );
-          // setSha(response.content.sha);
-        })
-        .catch((error: any) => {
-          cms.events.dispatch({ type: "github:error", error });
+      // return github
+      //   .commit(post.fileRelativePath, sha, formData, "Update from TinaCMS")
+      //   .then((response: { content: { sha: string } }) => {
+      //     cms.alerts.success(
+      //       `Saved Successfully: Changes committed to ${github.workingRepoFullName}`
+      //     );
+      //     // setSha(response.content.sha);
+      //   })
+      //   .catch((error: any) => {
+      //     cms.events.dispatch({ type: "github:error", error });
 
-          return { [FORM_ERROR]: error };
-        });
+      //     return { [FORM_ERROR]: error };
+      //   });
     },
     fields: [
       // define fields to appear in the form
@@ -111,13 +111,13 @@ export async function getStaticProps({ params, preview, previewData }: Params) {
   const content = await markdownToHtml(post.content || "");
 
   if (preview) {
-    const githubPreviewProps = await getGithubPreviewProps({
-      ...previewData,
-      fileRelativePath: `content/posts/${params.slug}.md`,
-      parse: parseMarkdown,
-    });
+    // const githubPreviewProps = await getGithubPreviewProps({
+    //   ...previewData,
+    //   fileRelativePath: `content/posts/${params.slug}.md`,
+    //   parse: parseMarkdown,
+    // });
 
-    const sha = githubPreviewProps.props.file.sha;
+    // const sha = githubPreviewProps.props.file.sha;
 
     return {
       props: {
@@ -128,7 +128,6 @@ export async function getStaticProps({ params, preview, previewData }: Params) {
           rawMarkdownBody: post.content,
           fileRelativePath: `content/posts/${params.slug}.md`,
         },
-        sha,
         preview: true,
       },
     };
@@ -141,7 +140,6 @@ export async function getStaticProps({ params, preview, previewData }: Params) {
         content,
         rawMarkdownBody: post.content,
       },
-      sha: null,
       preview: false,
     },
   };
