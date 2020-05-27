@@ -54,7 +54,7 @@ export default function Docs({ file, preview }) {
           <h1>{title}</h1>
           <p>{date}</p>
         </section>
-        <ReactMarkdown source={markdownBody} escapeHtml={false} />
+        <ReactMarkdown source={markdownBody} escapeHtml={true} />
       </article>
     </>
   );
